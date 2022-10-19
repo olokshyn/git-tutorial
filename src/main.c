@@ -93,7 +93,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 
 int err_abort(int status, char *message) {
-  fprintf(stderr, "%s\n", message);
+  fprintf(stderr, "Error %d: %s\n", status, message);
   exit(status);
   return 0;
 }
@@ -182,12 +182,13 @@ int main(int argc, char **argv) {
          arguments.verbose ? "yes" : "no", arguments.tick);
 
   /** Initialize state machine */
-  states_add(state_probe, state_two_enter, state_two_run, state_two_exit,
-             state_second_e, SECOND_STATE_NAME);
-  states_add(state_probe, NULL, state_three_run, NULL, state_third_e,
-             THIRD_STATE_NAME);
   states_add(state_probe, NULL, state_one_run, NULL, state_first_e,
-             FIRST_STATE_NAME);
+	         FIRST_STATE_NAME);
+  states_add(state_probe, state_two_enter, state_two_run, state_two_exit,
+	         state_second_e, SECOND_STATE_NAME);
+  states_add(state_probe, NULL, state_three_run, NULL, state_third_e,
+	         THIRD_STATE_NAME);
+
 
   states_set_callback(statemachine_callback);
 
@@ -199,7 +200,7 @@ int main(int argc, char **argv) {
   create_timer(arguments.tick);
 
   error = pthread_mutex_lock(&mutex);
-  if (!error)
+  if (error != 0)
     err_abort(error, "Lock mutex");
 
   while (count < count_to) {
